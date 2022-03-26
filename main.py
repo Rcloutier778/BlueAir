@@ -69,7 +69,7 @@ def main():
         query_result = influx.query(org='orgname', query='''
     from(bucket: "aqm")
   |> range(start: -1m)
-  |> filter(fn: (r) => r["_measurement"] == "BME680")
+  |> filter(fn: (r) => r["_measurement"] == "PM25")
   |> filter(fn: (r) => r["_field"] == "air_quality_score")
   |> aggregateWindow(every: 1s, fn: last, createEmpty: false)
   |> yield(name: "last")
@@ -78,7 +78,6 @@ def main():
         last_aqs = query_result[0].records[-1].get_value()
         return last_aqs
     last_aqs = get_last_aqs()
-    print(last_aqs)
     logger.info("Initial speed: %s, Initial AQS: %s", curr_speed, last_aqs)
 
     try:
@@ -141,6 +140,7 @@ def calcNewSpeed(curr_speed, curr_aqs, last_aqs):
         break
 
     speed = curr_speed if abs(curr_aqs - last_aqs) < 30 else speed
+    logger.info("Curr speed: %s  New Speed: %s  Curr AQS: %d  Last AQS: %d", curr_speed, speed, curr_aqs, last_aqs)
     return speed
 
 if __name__ == '__main__':
